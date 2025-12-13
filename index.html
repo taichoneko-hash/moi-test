@@ -1,1 +1,470 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Moi ToDo</title>
+  <style>
+    :root{
+      --bg:#f6f8fa;
+      --card:#ffffff;
+      --primary:#2a9d8f;
+      --muted:#6c757d;
+      --danger:#e76f51;
+      --shadow: 0 6px 18px rgba(32,40,45,0.06);
+      --radius:12px;
+      --gap:12px;
+      font-family: "Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo","Noto Sans JP",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+    }
 
+    html,body{
+      height:100%;
+      margin:0;
+      background:linear-gradient(180deg,#eef7f6 0%,var(--bg) 100%);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      color:#111827;
+    }
+
+    .wrap{
+      min-height:100%;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:48px 16px;
+      box-sizing:border-box;
+    }
+
+    .card{
+      width:100%;
+      max-width:760px;
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:20px;
+      box-sizing:border-box;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:18px;
+    }
+
+    header h1{
+      margin:0;
+      font-size:20px;
+      letter-spacing:-0.2px;
+    }
+
+    .meta{
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    form.add-form{
+      display:flex;
+      gap:10px;
+      margin-bottom:12px;
+    }
+
+    .input{
+      flex:1;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+
+    input[type="text"]{
+      width:100%;
+      padding:12px 14px;
+      border:1px solid #e6e9ec;
+      border-radius:10px;
+      font-size:15px;
+      box-sizing:border-box;
+      outline:none;
+      transition:box-shadow .12s, border-color .12s;
+    }
+
+    input[type="text"]:focus{
+      border-color:var(--primary);
+      box-shadow:0 6px 18px rgba(42,157,143,0.12);
+    }
+
+    button.add{
+      background:var(--primary);
+      color:#fff;
+      border:none;
+      padding:11px 14px;
+      border-radius:10px;
+      font-size:15px;
+      cursor:pointer;
+      box-shadow:0 6px 18px rgba(42,157,143,0.12);
+    }
+
+    button.add:active{ transform:translateY(1px); }
+
+    ul.list{
+      list-style:none;
+      margin:0;
+      padding:0;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    li.item{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid #f0f2f3;
+      background:linear-gradient(180deg,#fff,#fbfeff);
+      box-sizing:border-box;
+    }
+
+    .left{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex:1;
+      min-width:0;
+    }
+
+    .chk{
+      width:22px;
+      height:22px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:6px;
+      border:2px solid #dbe6e6;
+      cursor:pointer;
+      flex-shrink:0;
+    }
+
+    .chk input{
+      width:18px;
+      height:18px;
+      margin:0;
+      transform:translateY(-1px);
+      cursor:pointer;
+    }
+
+    .text{
+      font-size:15px;
+      color:#111827;
+      word-break:break-word;
+      white-space:pre-wrap;
+      min-width:0;
+    }
+
+    .text.completed{
+      color:var(--muted);
+      text-decoration:line-through;
+      opacity:0.85;
+    }
+
+    .actions{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+
+    button.del{
+      background:transparent;
+      border:none;
+      color:var(--danger);
+      padding:6px 8px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+    }
+
+    .empty{
+      text-align:center;
+      color:var(--muted);
+      padding:18px 8px;
+      font-size:14px;
+    }
+
+    footer{
+      margin-top:14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .counts{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    @media (max-width:480px){
+      .card{ padding:14px; border-radius:10px; }
+      header h1{ font-size:18px; }
+      input[type="text"]{ padding:10px 12px; font-size:14px; }
+      button.add{ padding:10px 12px; font-size:14px; }
+      li.item{ padding:10px; }
+    }
+
+    /* subtle focus for keyboard navigation */
+    .chk input:focus-visible, button.del:focus-visible, button.add:focus-visible, input[type="text"]:focus-visible{
+      outline:3px solid rgba(42,157,143,0.12);
+      outline-offset:2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <main class="card" role="main" aria-labelledby="main-title">
+      <header>
+        <div>
+          <h1 id="main-title">Moi ToDo</h1>
+          <div class="meta">シンプルで軽快な、ブラウザだけで動くToDo</div>
+        </div>
+        <div class="meta" id="date-now" aria-hidden="true"></div>
+      </header>
+
+      <form class="add-form" id="add-form" aria-label="タスク追加フォーム">
+        <div class="input">
+          <input id="todo-input" type="text" placeholder="新しいタスクを入力...（例：買い物に行く）" aria-label="タスクの内容" autocomplete="off" />
+        </div>
+        <button type="submit" class="add" id="add-btn" aria-label="タスクを追加">追加</button>
+      </form>
+
+      <section aria-live="polite">
+        <ul class="list" id="todo-list" role="list" aria-label="Todoリスト"></ul>
+        <div class="empty" id="empty-msg" hidden>まだタスクがありません。追加してみましょう！</div>
+      </section>
+
+      <footer>
+        <div class="counts" id="counts">
+          <div id="remaining">0 件の未完了</div>
+          <div id="total" style="opacity:.8">合計 0</div>
+        </div>
+        <div>
+          <button id="clear-completed" class="del" title="完了済みをすべて削除">完了済みを削除</button>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    (function(){
+      const STORAGE_KEY = 'moi-todo-items-v1';
+      const input = document.getElementById('todo-input');
+      const form = document.getElementById('add-form');
+      const listEl = document.getElementById('todo-list');
+      const emptyMsg = document.getElementById('empty-msg');
+      const remainingEl = document.getElementById('remaining');
+      const totalEl = document.getElementById('total');
+      const clearCompletedBtn = document.getElementById('clear-completed');
+      const dateNow = document.getElementById('date-now');
+
+      let todos = [];
+
+      function nowFriendly(){
+        try{
+          const d = new Date();
+          const opt = { month: 'short', day: 'numeric', hour:'2-digit', minute:'2-digit' };
+          return d.toLocaleString('ja-JP', opt);
+        }catch(e){
+          return '';
+        }
+      }
+
+      dateNow.textContent = nowFriendly();
+
+      function save(){
+        try{
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+        }catch(e){
+          console.warn('localStorage set failed', e);
+        }
+      }
+
+      function load(){
+        try{
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if(!raw) return [];
+          const parsed = JSON.parse(raw);
+          if(Array.isArray(parsed)) return parsed;
+          return [];
+        }catch(e){
+          console.warn('localStorage read failed', e);
+          return [];
+        }
+      }
+
+      function generateId(){
+        return Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+      }
+
+      function render(){
+        listEl.innerHTML = '';
+        if(todos.length === 0){
+          emptyMsg.hidden = false;
+        } else {
+          emptyMsg.hidden = true;
+        }
+
+        todos.forEach(item=>{
+          const li = document.createElement('li');
+          li.className = 'item';
+          li.dataset.id = item.id;
+          li.setAttribute('role','listitem');
+
+          const left = document.createElement('div');
+          left.className = 'left';
+
+          const chkWrap = document.createElement('label');
+          chkWrap.className = 'chk';
+          chkWrap.title = item.completed ? '完了を解除' : '完了にする';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = !!item.completed;
+          checkbox.setAttribute('aria-label', item.completed ? '完了済みのタスク' : '未完了のタスク');
+
+          chkWrap.appendChild(checkbox);
+
+          const txt = document.createElement('div');
+          txt.className = 'text';
+          txt.textContent = item.text;
+          if(item.completed){
+            txt.classList.add('completed');
+          }
+
+          left.appendChild(chkWrap);
+          left.appendChild(txt);
+
+          const actions = document.createElement('div');
+          actions.className = 'actions';
+
+          const delBtn = document.createElement('button');
+          delBtn.className = 'del';
+          delBtn.textContent = '削除';
+          delBtn.setAttribute('aria-label','タスクを削除');
+
+          actions.appendChild(delBtn);
+
+          li.appendChild(left);
+          li.appendChild(actions);
+
+          // events
+          checkbox.addEventListener('change', ()=>{
+            toggleComplete(item.id);
+          });
+
+          delBtn.addEventListener('click', ()=>{
+            removeItem(item.id);
+          });
+
+          // allow clicking text to toggle too (except long press)
+          txt.addEventListener('click', ()=>{
+            toggleComplete(item.id);
+          });
+
+          listEl.appendChild(li);
+        });
+
+        updateCounts();
+      }
+
+      function updateCounts(){
+        const total = todos.length;
+        const remaining = todos.filter(t=>!t.completed).length;
+        totalEl.textContent = '合計 ' + total;
+        remainingEl.textContent = remaining + ' 件の未完了';
+      }
+
+      function addItem(text){
+        const trimmed = text.trim();
+        if(!trimmed) return;
+        const item = {
+          id: generateId(),
+          text: trimmed,
+          completed: false,
+          createdAt: Date.now()
+        };
+        todos.unshift(item); // newest on top
+        save();
+        render();
+      }
+
+      function removeItem(id){
+        todos = todos.filter(t=>t.id !== id);
+        save();
+        render();
+      }
+
+      function toggleComplete(id){
+        todos = todos.map(t => {
+          if(t.id === id) return Object.assign({}, t, { completed: !t.completed });
+          return t;
+        });
+        save();
+        render();
+      }
+
+      function clearCompleted(){
+        const before = todos.length;
+        todos = todos.filter(t=>!t.completed);
+        if(todos.length === before) return;
+        save();
+        render();
+      }
+
+      // initial load
+      todos = load();
+      render();
+
+      // form submit
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        addItem(input.value);
+        input.value = '';
+        input.focus();
+      });
+
+      // keyboard: Enter handled by form; also add Ctrl+Enter as alternate
+      input.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
+          // Ctrl+Enter -> add too
+          e.preventDefault();
+          addItem(input.value);
+          input.value = '';
+          input.focus();
+        }
+      });
+
+      // clear completed
+      clearCompletedBtn.addEventListener('click', (e)=>{
+        clearCompleted();
+      });
+
+      // support drag to reorder? Not required; keep simple
+
+      // small accessibility: allow deleting with long-press? Not necessary.
+
+      // expose to console for debugging
+      window.MoiToDo = {
+        getAll: ()=>todos.slice(),
+        add: (t)=>{ addItem(t); },
+        clearCompleted
+      };
+
+      // keep date display updated every minute
+      setInterval(()=>{ dateNow.textContent = nowFriendly(); }, 60000);
+    })();
+  </script>
+</body>
+</html>
